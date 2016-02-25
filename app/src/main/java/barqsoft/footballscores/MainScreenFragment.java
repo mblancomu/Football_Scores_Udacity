@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,78 +21,83 @@ import barqsoft.footballscores.service.myFetchService;
  */
 public class MainScreenFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>
 {
-    public scoresAdapter mAdapter;
+    private static int mSelectedMatchId;
+    private scoresAdapter mAdapter;
+    private String mFragmentDate;
     public static final int SCORES_LOADER = 0;
     private String[] fragmentdate = new String[1];
     private int last_selected_item = -1;
+
+    private static final String SELECTED_MATCH_ID_TAG = "SELECTED_MATCH_ID_TAG";
+    private static final String FRAGMENT_DATE_TAG = "FRAGMENT_DATE_TAG";
 
     public MainScreenFragment()
     {
     }
 
-    private void update_scores()
-    {
-        Intent service_start = new Intent(getActivity(), myFetchService.class);
-        getActivity().startService(service_start);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if(savedInstanceState != null) {
+            mSelectedMatchId = savedInstanceState.getInt(SELECTED_MATCH_ID_TAG);
+            mFragmentDate = savedInstanceState.getString(FRAGMENT_DATE_TAG);
+        }
+        Log.v("MatchListFragment", "mFragmentDate is " + mFragmentDate);
     }
-    public void setFragmentDate(String date)
-    {
-        fragmentdate[0] = date;
-    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              final Bundle savedInstanceState) {
+        // TODO: 31/10/2015 should not do update here
         update_scores();
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         final ListView score_list = (ListView) rootView.findViewById(R.id.scores_list);
+
         mAdapter = new scoresAdapter(getActivity(),null,0);
+        mAdapter.setDetailMatchId(mSelectedMatchId);
+
         score_list.setAdapter(mAdapter);
-        getLoaderManager().initLoader(SCORES_LOADER,null,this);
-        mAdapter.detail_match_id = MainActivity.selected_match_id;
-        score_list.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
+        score_list.setEmptyView(rootView.findViewById(R.id.empty_view));
+
+        score_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
-                ViewHolder selected = (ViewHolder) view.getTag();
-                mAdapter.detail_match_id = selected.match_id;
-                MainActivity.selected_match_id = (int) selected.match_id;
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ViewHolder selectedView = (ViewHolder) view.getTag();
+                mAdapter.setDetailMatchId((int) selectedView.match_id);
+
+                mSelectedMatchId = (int) selectedView.match_id;
                 mAdapter.notifyDataSetChanged();
             }
         });
+        getLoaderManager().initLoader(SCORES_LOADER, null, this);
+
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SELECTED_MATCH_ID_TAG, mSelectedMatchId);
+        outState.putString(FRAGMENT_DATE_TAG,mFragmentDate);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle)
     {
-        return new CursorLoader(getActivity(),DatabaseContract.scores_table.buildScoreWithDate(),
-                null,null,fragmentdate,null);
+        String[] selectionArgs = new String[]{mFragmentDate};
+        if(selectionArgs == null) {
+            Log.e("MatchListFragment","selectionArgs is null");
+        }
+        return new CursorLoader(getActivity(), DatabaseContract.scores_table.buildScoreWithDate(),
+                null,null, selectionArgs,null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor)
     {
-        //Log.v(FetchScoreTask.LOG_TAG,"loader finished");
-        //cursor.moveToFirst();
-        /*
-        while (!cursor.isAfterLast())
-        {
-            Log.v(FetchScoreTask.LOG_TAG,cursor.getString(1));
-            cursor.moveToNext();
-        }
-        */
-
-        int i = 0;
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast())
-        {
-            i++;
-            cursor.moveToNext();
-        }
-        //Log.v(FetchScoreTask.LOG_TAG,"Loader query: " + String.valueOf(i));
         mAdapter.swapCursor(cursor);
-        //mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -100,5 +106,20 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
         mAdapter.swapCursor(null);
     }
 
+    // TODO: 31/10/2015 does not belong here
+    private void update_scores()
+    {
+        Intent intent = new Intent(getActivity(), myFetchService.class);
+        getActivity().startService(intent);
+    }
+    public void setFragmentDate(String date)
+    {
+        mFragmentDate = date;
+    }
 
+    public static Fragment newInstance(String dateString) {
+        MainScreenFragment mainScreenFragment = new MainScreenFragment();
+        mainScreenFragment.setFragmentDate(dateString);
+        return mainScreenFragment;
+    }
 }
