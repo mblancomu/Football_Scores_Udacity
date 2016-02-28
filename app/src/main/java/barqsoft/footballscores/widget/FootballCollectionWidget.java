@@ -3,6 +3,7 @@ package barqsoft.footballscores.widget;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.widget.RemoteViews;
@@ -25,24 +27,18 @@ import barqsoft.footballscores.service.WidgetService;
  */
 public class FootballCollectionWidget extends AppWidgetProvider {
     public static String CLICK_ACTION = "barqsoft.footballscores.widget.LIST_CLICK";
-//    public static String REFRESH_ACTION = "barqsoft.footballscores.widget.LIST_REFRESH";
-
     private static HandlerThread sWorkerThread;
     private static Handler sWorkerQueue;
     private static ScoreDataProviderObserver sDataObserver;
 
     public FootballCollectionWidget() {
-        sWorkerThread = new HandlerThread("FootballAppCollectionWidgetProvider-worker");
+        sWorkerThread = new HandlerThread("FootballCollectionWidget-worker");
         sWorkerThread.start();
         sWorkerQueue = new Handler(sWorkerThread.getLooper());
     }
 
     @Override
     public void onEnabled(Context context) {
-        // Register for external updates to the data to trigger an update of the widget.  When using
-        // content providers, the data is often updated via a background service, or in response to
-        // user interaction in the main app.  To ensure that the widget always reflects the current
-        // state of the data, we must listen for changes and update ourselves accordingly.
         final ContentResolver r = context.getContentResolver();
         if (sDataObserver == null) {
             final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
@@ -50,7 +46,6 @@ public class FootballCollectionWidget extends AppWidgetProvider {
             sDataObserver = new ScoreDataProviderObserver(mgr, cn, sWorkerQueue);
             r.registerContentObserver(DatabaseContract.scores_table.buildScoreWithDate(), true, sDataObserver);
         }
-        Toast.makeText(context, "widget enabled", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -58,10 +53,6 @@ public class FootballCollectionWidget extends AppWidgetProvider {
         final String action = intent.getAction();
 
         if (action.equals(CLICK_ACTION)) {
-            Toast.makeText(ctx, "widget clicked", Toast.LENGTH_SHORT).show();
-            // Show a toast
-//            final int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-//                    AppWidgetManager.INVALID_APPWIDGET_ID);
             intent.setClass(ctx, MainActivity.class);
             ctx.startActivity(intent);
         }
@@ -73,9 +64,8 @@ public class FootballCollectionWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         Toast.makeText(context, "widget onupdate", Toast.LENGTH_SHORT).show();
         // Update each of the widgets with the remote adapter
+
         for (int i = 0; i < appWidgetIds.length; ++i) {
-            // Specify the service to provide data for the collection widget.  Note that we need to
-            // embed the appWidgetId via the data otherwise it will be ignored.
             final Intent intent = new Intent(context, WidgetService.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
@@ -86,13 +76,13 @@ public class FootballCollectionWidget extends AppWidgetProvider {
                 rv.setRemoteAdapter(appWidgetIds[i], R.id.scores_list, intent);
             }
 
-            // Set the empty view to be displayed if the collection is empty.  It must be a sibling
-            // view of the collection view.
             rv.setEmptyView(R.id.scores_list, R.id.empty_view);
 
-            // Bind a click listener template for the contents of the weather list.  Note that we
-            // need to update the intent's data if we set an extra, since the extras will be
-            // ignored otherwise.
+            Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetIds[i]);
+
+            int category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1);
+            boolean isLockScreen = category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD;
+
             final Intent onClickIntent = new Intent(context, FootballCollectionWidget.class);
             onClickIntent.setAction(FootballCollectionWidget.CLICK_ACTION);
             onClickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
@@ -104,6 +94,14 @@ public class FootballCollectionWidget extends AppWidgetProvider {
             appWidgetManager.updateAppWidget(appWidgetIds[i], rv);
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
+
+        // Build the intent to call the service
+        Intent intent = new Intent(context.getApplicationContext(),
+                WidgetService.class);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+
+        // Update the widgets via the service
+        context.startService(intent);
     }
 }
 
@@ -119,9 +117,6 @@ class ScoreDataProviderObserver extends ContentObserver {
 
     @Override
     public void onChange(boolean selfChange) {
-        // The data has changed, so notify the widget that the collection view needs to be updated.
-        // In response, the factory's onDataSetChanged() will be called which will requery the
-        // cursor for the new data.
         mAppWidgetManager.notifyAppWidgetViewDataChanged(
                 mAppWidgetManager.getAppWidgetIds(mComponentName), R.id.scores_list);
     }

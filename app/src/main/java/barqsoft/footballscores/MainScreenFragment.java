@@ -64,10 +64,10 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
         score_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ViewHolder selectedView = (ViewHolder) view.getTag();
-                mAdapter.setDetailMatchId((int) selectedView.match_id);
+                scoresAdapter.ViewHolder selectedView = (scoresAdapter.ViewHolder) view.getTag();
+                mAdapter.setDetailMatchId((int) selectedView.matchId);
 
-                mSelectedMatchId = (int) selectedView.match_id;
+                mSelectedMatchId = (int) selectedView.matchId;
                 mAdapter.notifyDataSetChanged();
             }
         });

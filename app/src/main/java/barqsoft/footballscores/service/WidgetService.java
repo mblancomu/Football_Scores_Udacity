@@ -5,14 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Binder;
+import android.provider.SyncStateContract;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import barqsoft.footballscores.Constant;
 import barqsoft.footballscores.DatabaseContract;
 import barqsoft.footballscores.R;
+import barqsoft.footballscores.Utilies;
 
 /**
  * Created by manuel on 25/2/16.
@@ -75,28 +78,27 @@ public class WidgetService extends RemoteViewsService {
     @Override
     public RemoteViews getViewAt(int position) {
         // Get the data for this position from the content provider
-//        String city = "Unknown City";
-//        int temp = 0;
-//        if (mCursor.moveToPosition(position)) {
-//            final int cityColIndex = mCursor.getColumnIndex(WeatherDataProvider.Columns.CITY);
-//            final int tempColIndex = mCursor.getColumnIndex(
-//                    WeatherDataProvider.Columns.TEMPERATURE);
-//            city = mCursor.getString(cityColIndex);
-//            temp = mCursor.getInt(tempColIndex);
-//        }
-
-        // Return a proper item with the proper city and temperature.  Just for fun, we alternate
-        // the items to make the list easier to read.
 
         RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.scores_list_item);
-        rv.setTextViewText(R.id.home_name,"Frank");
-        rv.setTextViewText(R.id.away_name,"Ariel");
-        rv.setImageViewResource(R.id.home_crest, R.drawable.ic_launcher);
-        rv.setImageViewResource(R.id.away_crest, R.drawable.ic_launcher);
 
-        // Set the click intent so that we can handle it and show a toast message
-        final Intent fillInIntent = new Intent();
-        rv.setOnClickFillInIntent(R.id.widget, fillInIntent);
+        if (mCursor.moveToPosition(position)) {
+
+            rv.setTextViewText(R.id.home_name, mCursor.getString(Constant.COL_HOME));
+            rv.setTextViewText(R.id.away_name, mCursor.getString(Constant.COL_AWAY));
+            rv.setTextViewText(R.id.data_textview, mCursor.getString(Constant.COL_DATE));
+            rv.setTextViewText(R.id.score_textview, Utilies.getScores(mCursor.getInt(Constant.COL_HOME_GOALS), mCursor.getInt(Constant.COL_AWAY_GOALS)));
+            rv.setImageViewResource(R.id.home_crest, Utilies.getTeamCrestByTeamName(
+                    mCursor.getString(Constant.COL_HOME)));
+            rv.setImageViewResource(R.id.away_crest, Utilies.getTeamCrestByTeamName(
+                    mCursor.getString(Constant.COL_AWAY)));
+            rv.setImageViewResource(R.id.home_crest, R.drawable.ic_launcher);
+            rv.setImageViewResource(R.id.away_crest, R.drawable.ic_launcher);
+
+        }
+
+            // Set the click intent so that we can handle it and show a toast message
+            final Intent fillInIntent = new Intent();
+            rv.setOnClickFillInIntent(R.id.widget, fillInIntent);
 
         return rv;
     }

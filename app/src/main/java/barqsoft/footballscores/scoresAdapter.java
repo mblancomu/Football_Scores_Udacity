@@ -17,16 +17,6 @@ import android.widget.TextView;
  */
 public class scoresAdapter extends CursorAdapter
 {
-    private static final int COL_HOME = 3;
-    private static final int COL_AWAY = 4;
-    private static final int COL_HOME_GOALS = 6;
-    private static final int COL_AWAY_GOALS = 7;
-    private static final int COL_DATE = 1;
-    private static final int COL_LEAGUE = 5;
-    private static final int COL_MATCHDAY = 9;
-    private static final int COL_ID = 8;
-    private static final int COL_MATCHTIME = 2;
-    private static final String FOOTBALL_SCORES_HASHTAG = "#Football_Scores";
 
     private int detailMatchId = 0;
 
@@ -46,15 +36,15 @@ public class scoresAdapter extends CursorAdapter
     @Override
     public void bindView(View view, final Context context, Cursor cursor) {
         final ViewHolder viewHolder = (ViewHolder) view.getTag();
-        viewHolder.homeName.setText(cursor.getString(COL_HOME));
-        viewHolder.awayName.setText(cursor.getString(COL_AWAY));
-        viewHolder.date.setText(cursor.getString(COL_MATCHTIME));
-        viewHolder.score.setText(Utilies.getScores(cursor.getInt(COL_HOME_GOALS), cursor.getInt(COL_AWAY_GOALS)));
-        viewHolder.matchId = (int) cursor.getDouble(COL_ID);
+        viewHolder.homeName.setText(cursor.getString(Constant.COL_HOME));
+        viewHolder.awayName.setText(cursor.getString(Constant.COL_AWAY));
+        viewHolder.date.setText(cursor.getString(Constant.COL_MATCHTIME));
+        viewHolder.score.setText(Utilies.getScores(cursor.getInt(Constant.COL_HOME_GOALS), cursor.getInt(Constant.COL_AWAY_GOALS)));
+        viewHolder.matchId = (int) cursor.getDouble(Constant.COL_ID);
         viewHolder.homeCrest.setImageResource(Utilies.getTeamCrestByTeamName(
-                cursor.getString(COL_HOME)));
+                cursor.getString(Constant.COL_HOME)));
         viewHolder.awayCrest.setImageResource(Utilies.getTeamCrestByTeamName(
-                cursor.getString(COL_AWAY)
+                cursor.getString(Constant.COL_AWAY)
         ));
 
         LayoutInflater vi = (LayoutInflater) context.getApplicationContext()
@@ -65,10 +55,10 @@ public class scoresAdapter extends CursorAdapter
             container.addView(v, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT
                     , ViewGroup.LayoutParams.MATCH_PARENT));
             TextView match_day = (TextView) v.findViewById(R.id.matchday_textview);
-            match_day.setText(Utilies.getMatchDay(cursor.getInt(COL_MATCHDAY),
-                    cursor.getInt(COL_LEAGUE)));
+            match_day.setText(Utilies.getMatchDay(cursor.getInt(Constant.COL_MATCHDAY),
+                    cursor.getInt(Constant.COL_LEAGUE)));
             TextView league = (TextView) v.findViewById(R.id.league_textview);
-            league.setText(Utilies.getLeague(cursor.getInt(COL_LEAGUE)));
+            league.setText(Utilies.getLeague(cursor.getInt(Constant.COL_LEAGUE)));
             Button share_button = (Button) v.findViewById(R.id.share_button);
             share_button.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -88,7 +78,7 @@ public class scoresAdapter extends CursorAdapter
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, ShareText + FOOTBALL_SCORES_HASHTAG);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, ShareText + Constant.FOOTBALL_SCORES_HASHTAG);
         return shareIntent;
     }
 

@@ -17,5 +17,5 @@
         android:text="@string/today_match"
         android:id="@+id/textView" />
 
-    <include layout="@layout/fragment_match_list"/>
+    <include layout="@layout/fragment_main"/>
 </LinearLayout>
