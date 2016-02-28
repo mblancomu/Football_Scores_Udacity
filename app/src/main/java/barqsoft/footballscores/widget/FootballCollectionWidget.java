@@ -18,7 +18,7 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import barqsoft.footballscores.DatabaseContract;
-import barqsoft.footballscores.MainActivity;
+import barqsoft.footballscores.activity.MainActivity;
 import barqsoft.footballscores.R;
 import barqsoft.footballscores.service.WidgetService;
 

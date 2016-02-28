@@ -1,4 +1,4 @@
-package barqsoft.footballscores;
+package barqsoft.footballscores.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,10 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import barqsoft.footballscores.R;
+import barqsoft.footballscores.utils.Constant;
+import barqsoft.footballscores.utils.Utilies;
 
 /**
  * Created by yehya khaled on 2/26/2015.
@@ -86,7 +90,7 @@ public class scoresAdapter extends CursorAdapter
         this.detailMatchId = detailMatchId;
     }
 
-    class ViewHolder
+    public class ViewHolder
     {
         public TextView homeName;
         public TextView awayName;

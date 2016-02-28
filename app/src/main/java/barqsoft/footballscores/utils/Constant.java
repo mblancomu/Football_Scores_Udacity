@@ -1,4 +1,4 @@
-package barqsoft.footballscores;
+package barqsoft.footballscores.utils;
 
 /**
  * Created by manuel on 28/2/16.

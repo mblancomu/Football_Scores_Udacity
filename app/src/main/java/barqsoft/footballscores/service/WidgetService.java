@@ -5,17 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Binder;
-import android.provider.SyncStateContract;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import barqsoft.footballscores.Constant;
+import barqsoft.footballscores.utils.Constant;
 import barqsoft.footballscores.DatabaseContract;
 import barqsoft.footballscores.R;
-import barqsoft.footballscores.Utilies;
+import barqsoft.footballscores.utils.Utilies;
 
 /**
  * Created by manuel on 25/2/16.
